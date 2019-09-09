@@ -25,7 +25,9 @@ passport.use(
     {
       clientID: keys.googleClientID,
       clientSecret: keys.googleClientSecret,
+      // callbackURL: '/auth/google/callback',  if you use a relative path, the browser will turn it into an http protocol. Could use env variable or pass the proxy true/
       callbackURL: '/auth/google/callback',
+      proxy: true,
     },
     (accessToken, refreshToken, profile, done) => {
       console.log('google sends google ID', profile.id);
