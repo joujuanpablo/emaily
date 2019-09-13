@@ -9,14 +9,12 @@ const User = mongoose.model('users'); //grab this schema from "mongoose" (one ar
 
 passport.serializeUser((user, done) => {
   done(null, user.id); //id for the mongo record (user model ID) and the app as a whole, not the google id. This is because they could be signing in with linkedIn or instagram etc. This id unifies
-  console.log('serialize is done');
 });
 
 passport.deserializeUser((id, done) => {
   User.findById(id).then(user => {
     //findById takes the serialized id and turns it into mongoose id? No at this point it has been deserialized into the mongoose ID and now it's retrieving the record
     done(null, user);
-    console.log('deserialize is done', id, user);
   });
 });
 
@@ -29,25 +27,13 @@ passport.use(
       callbackURL: '/auth/google/callback',
       proxy: true,
     },
-    (accessToken, refreshToken, profile, done) => {
-      console.log('google sends google ID', profile.id);
-      new User({ googleId: profile.id }).save();
-
-      User.findOne({ googleId: profile.id })
-        .then(existingUser => {
-          if (existingUser) {
-            console.log('passport found that the user already exists');
-            done(null, existingUser);
-          } else {
-            console.log(
-              'passport did not find matching user, new user please!',
-            );
-            new User({ googleId: profile.id })
-              .save()
-              .then(user => done(null, user));
-          }
-        })
-        .catch(error => console.log('ERROR', error));
+    async (accessToken, refreshToken, profile, done) => {
+      const existingUser = await User.findOne({ googleId: profile.id });
+      if (existingUser) {
+        return done(null, existingUser);
+      }
+      const user = await new User({ googleId: profile.id }).save();
+      done(null, user);
     },
   ),
 );
