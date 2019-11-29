@@ -8,9 +8,9 @@ import * as actions from '../actions';
 
 // Components
 import Header from './Header';
+import Landing from './Landing';
 
-const component1 = () => <h2>component1</h2>;
-const component2 = () => <h2>component2</h2>;
+const Dashboard = () => <h2>surveys dashboard</h2>;
 const component3 = () => <h2>component3</h2>;
 const component4 = () => <h2>component4</h2>;
 
@@ -25,8 +25,8 @@ class App extends React.Component {
         <BrowserRouter>
           <Header />
           <div>
-            <Route path={'/'} exact component={component1} />
-            <Route path={'/component2'} component={component2} />
+            <Route path={'/'} exact component={Landing} />
+            <Route path={'/surveys'} component={Dashboard} />
             <Route path={'/component3'} component={component3} />
             <Route path={'/component4'} component={component4} />
           </div>
@@ -36,7 +36,4 @@ class App extends React.Component {
   }
 }
 
-export default connect(
-  null,
-  actions,
-)(App);
+export default connect(null, actions)(App);
