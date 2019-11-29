@@ -9,16 +9,6 @@ module.exports = app => {
       amount: 500,
       currency: 'usd',
       description: '$5 for 5 email credits',
-      shipping: {
-        name: 'Jenny Rosen',
-        address: {
-          line1: '510 Townsend St',
-          postal_code: '98140',
-          city: 'San Francisco',
-          state: 'CA',
-          country: 'US',
-        },
-      },
       source: req.body.id,
     });
     req.user.credits += 5;
