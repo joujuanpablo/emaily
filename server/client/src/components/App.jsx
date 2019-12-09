@@ -9,9 +9,8 @@ import * as actions from '../actions';
 // Components
 import Header from './Header';
 import Landing from './Landing';
-
-const Dashboard = () => <h2>surveys dashboard</h2>;
-const component3 = () => <h2>component3</h2>;
+import Dashboard from './Dashboard';
+import SurveyNew from './surveys/SurveyNew';
 const component4 = () => <h2>component4</h2>;
 
 class App extends React.Component {
@@ -24,10 +23,10 @@ class App extends React.Component {
       <div className='container'>
         <BrowserRouter>
           <Header />
-          <div>
+          <div className='container'>
             <Route path={'/'} exact component={Landing} />
-            <Route path={'/surveys'} component={Dashboard} />
-            <Route path={'/component3'} component={component3} />
+            <Route path={'/surveys'} exact component={Dashboard} />
+            <Route path={'/surveys/new'} exact component={SurveyNew} />
             <Route path={'/component4'} component={component4} />
           </div>
         </BrowserRouter>
