@@ -3,33 +3,13 @@ import { reduxForm, Field } from 'redux-form';
 import SurveyField from './SurveyField';
 import { Link } from 'react-router-dom';
 import validateEmails from '../../utils/validateEmails';
-
-const FIELDS = [
-  // All caps means that we don't want this to change programmatically
-  {
-    label: 'Survey Title',
-    name: 'title',
-    // noValueError: 'You must provide a survey title'  ...if you wanted custom error messages.
-  },
-  {
-    label: 'Subject Line',
-    name: 'subject',
-  },
-  {
-    label: 'Email Body',
-    name: 'body',
-  },
-  {
-    label: 'Recipient List',
-    name: 'emails',
-  },
-];
+import formFields from './formFields';
 
 class SurveyForm extends React.Component {
   renderFields() {
     return (
       <div>
-        {FIELDS.map((field, index) => (
+        {formFields.map((field, index) => (
           <Field {...field} key={index} type='text' component={SurveyField} /> // Survey field will receive all the props given to  Field (its parent)
         ))}
       </div>
@@ -37,13 +17,11 @@ class SurveyForm extends React.Component {
   }
 
   render() {
+    const { handleSubmit, onSurveySubmit } = this.props;
     return (
       <div>
-        <form
-          onSubmit={this.props.handleSubmit(values =>
-            console.log('values', values),
-          )}
-        >
+        <form onSubmit={handleSubmit(onSurveySubmit)}>
+          {/* if we put parens, it would run onSurveySubmit on every render. Also remember, handleSubmit comes from redux form */}
           {this.renderFields()}
           <Link className='red btn-flat white-text' to='/surveys'>
             Cancel
@@ -60,9 +38,9 @@ class SurveyForm extends React.Component {
 
 function validate(values) {
   const errors = {};
-  errors.emails = validateEmails(values.emails || ''); //first time it will be empty
+  errors.recipients = validateEmails(values.recipients || ''); //first time it will be empty
 
-  FIELDS.forEach(({ name }) => {
+  formFields.forEach(({ name }) => {
     if (!values[name]) {
       errors[name] = `You must provide a value`;
     }
@@ -72,8 +50,9 @@ function validate(values) {
 }
 
 export default reduxForm({
-  form: 'surveyForm',
+  form: 'surveyForm', // when redux-form puts our form into redux state, this is the key for this particular form.
   validate,
+  destroyOnUnmount: false, // keep the values when the form component isn't showing
 })(SurveyForm);
 
 // redux form acts very similarly to connect.

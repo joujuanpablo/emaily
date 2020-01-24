@@ -1,3 +1,6 @@
+const _ = require('lodash');
+const { Path } = require('path-parser');
+const { URL } = require('url');
 const mongoose = require('mongoose');
 const requireLogin = require('../middlewares/requireLogin');
 const requireCredits = require('../middlewares/requireCredits');
@@ -7,19 +10,46 @@ const surveyTemplate = require('../services/emailTemplates/surveyTemplate');
 const Survey = mongoose.model('surveys'); //if you require a mongoose model too many times, tests sometimes complain. This circumvents that.
 
 module.exports = app => {
-  app.get('/api/surveys/thanks', (req, res) => {
+  app.get('/api/surveys/:surveyId/:choice', (req, res) => {
     res.send('Thanks for voting!');
+  });
+  app.post('/api/surveys/webhooks', (req, res) => {
+    // extract info from the url the user is taken  to when they click an email (the post is sent by sendgrid)
+    const p = new Path('/api/surveys/:surveyId/:choice');
+    _.chain(req.body)
+      .map(({ email, url }) => {
+        const match = p.test(new URL(url).pathname);
+        if (match)
+          return {
+            email,
+            surveyId: match.surveyId,
+            choice: match.choice,
+          };
+      })
+      .compact() //remove elemnts of the array that are undefined -> ie those that don't have a url and choice
+      .uniqBy('email', 'surveyId ') //removes duplicate records by email and surveyId together
+      .each(({ email, surveyId, choice }) => {
+        // even though this is asynchronous, sendgrid doesn't care if  we send them a response so we don't need handlers.
+        Survey.updateOne(
+          {
+            _id: surveyId, //_id is a Mongo thing.. mongoose accepts just id, but Mongo doesn't
+            recipients: {
+              $elemMatch: { email: email, responded: false },
+            },
+          },
+          {
+            $inc: { [choice]: 1 }, //increment  the choice they voted for (yes/no) by 1
+            $set: { 'recipients.$.responded': true }, //set the responded property of the matched recipient to true
+            lastResponded: new Date(),
+          },
+        ).exec(); //execute the query
+      })
+      .value(); // return the value
+
+    res.send({});
   });
   app.post('/api/surveys', requireLogin, requireCredits, async (req, res) => {
     const { title, subject, body, recipients } = req.body;
-
-    // const createObjArr = emailsStr => {
-    //   const emailsStrArr = emailsStr.split(',');
-    //   const emailsObjArr = emailsStrArr.map(emailStr => {
-    //     email: emailStr;
-    //   });
-    //   return emailsObjArr;
-    // };
 
     const survey = new Survey({
       title,
