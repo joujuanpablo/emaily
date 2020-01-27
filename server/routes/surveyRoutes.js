@@ -10,6 +10,12 @@ const surveyTemplate = require('../services/emailTemplates/surveyTemplate');
 const Survey = mongoose.model('surveys'); //if you require a mongoose model too many times, tests sometimes complain. This circumvents that.
 
 module.exports = app => {
+  app.get('/api/surveys', requireLogin, async (req, res) => {
+    const surveys = await Survey.find({ _user: req.user.id }).select({
+      recipients: false,
+    }); //we don't need that huge list of recipients
+    res.send(surveys);
+  });
   app.get('/api/surveys/:surveyId/:choice', (req, res) => {
     res.send('Thanks for voting!');
   });
